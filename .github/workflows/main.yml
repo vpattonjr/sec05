@@ -16,11 +16,6 @@ jobs:
         ports:
           - 5000:5000
         options: --name flask --entrypoint "flask run --host=0.0.0.0"
-        volumes:
-          - ${{ github.workspace }}:/app
-        working_dir: /app
-        env:
-          FLASK_APP: app.py
 
     steps:
     - name: Checkout code

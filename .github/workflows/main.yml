@@ -1,25 +1,45 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
-  prepare_matrix:
+  build:
     runs-on: ubuntu-latest
+
     services:
-      mock_rampage:
+      flask:
         image: python:3.8
         ports:
-          - 5001:5001
-        options: --entrypoint "flask --app ./mock_rampage/mock_rampage run -h mock_rampage -p 5001"
+          - 5000:5000
+        options: --name flask --entrypoint "flask run --host=0.0.0.0"
+        volumes:
+          - ${{ github.workspace }}:/app
+        working_dir: /app
+        env:
+          FLASK_APP: app.py
+
     steps:
-      - name: Wait for mock_rampage to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:5001/health; then
-              echo 'mock_rampage is up'
-              break
-            else
-              echo 'Waiting for mock_rampage...'
-              sleep 1
-            fi
-          done
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Wait for Flask
+      run: |
+        sleep 10
+
+    - name: Test Flask
+      run: |
+        curl -I http://localhost:5000

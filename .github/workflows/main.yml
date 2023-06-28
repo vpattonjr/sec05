@@ -21,9 +21,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install flask
 
+    - name: Create basic Flask app
+      run: |
+        echo "from flask import Flask, jsonify" > app.py
+        echo "app = Flask(__name__)" >> app.py
+        echo "@app.route('/', methods=['GET'])" >> app.py
+        echo "def home():" >> app.py
+        echo "    return jsonify({'message': 'Hello, World!'}), 200" >> app.py
+
     - name: Run Flask server
       run: |
-        nohup python -m flask run --host=0.0.0.0 &
+        export FLASK_APP=app.py
+        nohup flask run --host=0.0.0.0 > flask.log 2>&1 &
 
     - name: Wait for Flask
       run: |
